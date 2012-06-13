@@ -24,7 +24,7 @@ program
 	.version('0.1.0')
 	.option("-d, --directory [dir]", "directory to analyse", ".")
 	.option("-u, --user <email>", "user email adress to filter")
-	.option("-t, --time [time]", "git log since compatible time")
+	#.option("-t, --time [time]", "git log since compatible time")
 	.option("-p, --pause <pause>", "max pause time in minutes (default: #{defaultPauseTime})", parsePauseTime)
 	.option("-i, --init <init>", "init time in minutes (default: #{defaultInitTime})", parseInitTime)
 
