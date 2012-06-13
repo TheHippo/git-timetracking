@@ -22,7 +22,7 @@ parseInitTime = (val) ->
 		defaultPauseTime
 
 program
-	.version('0.2.0')
+	.version('0.2.1')
 	.option("-d, --directory [dir]", "directory to analyse", ".")
 	.option("-g, --group [regexp]", "group commit times by regexp", null)
 	.option("-u, --user <email>", "user email adress to filter")
