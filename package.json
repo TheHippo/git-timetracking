@@ -9,7 +9,8 @@
   },
   "dependencies" : {
     "coffee-script"   :  "1.3.x",
-    "commander" : "0.6.x"
+    "commander" : "0.6.x",
+    "cli-table": "*"
   },
   "noAnalyze": true,
   "license": "MIT",
