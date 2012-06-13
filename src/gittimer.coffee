@@ -2,6 +2,7 @@ program = require "commander"
 fs = require "fs"
 childProcess = require "child_process"
 spawn = childProcess.spawn
+cliTable = require "cli-table"
 
 defaultPauseTime = 20
 defaultInitTime = 10
@@ -21,22 +22,76 @@ parseInitTime = (val) ->
 		defaultPauseTime
 
 program
-	.version('0.1.0')
+	.version('0.2.0')
 	.option("-d, --directory [dir]", "directory to analyse", ".")
+	.option("-g, --group [regexp]", "group commit times by regexp", null)
 	.option("-u, --user <email>", "user email adress to filter")
 	#.option("-t, --time [time]", "git log since compatible time")
 	.option("-p, --pause <pause>", "max pause time in minutes (default: #{defaultPauseTime})", parsePauseTime)
 	.option("-i, --init <init>", "init time in minutes (default: #{defaultInitTime})", parseInitTime)
 
-
 formatTime = (sum) ->
 	[Math.floor( sum / 60 / 60), Math.floor(Math.floor(sum / 60) % 60), sum % 60]
+
+formatTimeToString = (sum) ->
+	[h,m,s] = formatTime sum
+	return "#{h}:#{m}:#{s}"
+	
+
+outputSummary = (data) ->
+	table = new cliTable
+		head: ['Issue', 'Time spent', 'Commit count']
+		colWidth: [100,100,100]
+	
+	if program.group?
+		try
+			reg = new RegExp program.group , 'i'
+			grouped = {}
+		catch error
+			console.log "Could not compile regular expression", error
+			process.exit
+	else
+		reg = null
+		grouped = null
+		console.log "no grouping"
+	
+	total = 0
+
+	for commit in data
+		total += commit.effort
+		if reg?
+			grouper = null
+			match = commit.subject.match reg
+			grouper = match[1] if match?
+			if grouper
+				if not grouped[grouper]?
+					grouped[grouper] =
+						count: 1
+						effort: commit.effort
+				else
+					grouped[grouper].count++
+					grouped[grouper].effort += commit.effort
+			else
+				if not grouped["other"]?
+					grouped["other"] =
+						count: 1
+						effort: commit.effort
+				else
+					grouped["other"].count++
+					grouped["other"].effort += commit.effort
+	
+	if grouped
+		for k,v of grouped
+			table.push [k, formatTimeToString(v.effort), v.count]
+	
+	table.push ["TOTAL:",formatTimeToString(total),data.length]
+	console.log table.toString()
+	process.exit()
 
 calcTime = (data) ->
 	pause = program.pause * 60
 	init = program.init * 60
 	
-	sum = 0
 	for i in [0...data.length]
 		commit = data[i]
 		if not data[i+1]?
@@ -47,13 +102,8 @@ calcTime = (data) ->
 				commit.effort = init
 			else
 				commit.effort = commit.time - prev.time
-		sum+=commit.effort	
-		#console.log commit.hash, commit.time, commit.effort / 1000 / 60
 		
-	[h,m,s] = formatTime sum
-	console.log "#{h}:#{m}:#{s}"
-		
-	process.exit()
+	outputSummary data
 	
 parseLog = (log, user) ->
 	lines = log.split "\n"
@@ -82,7 +132,7 @@ start = (email, directory) ->
 		console.log "error: ", data
 	log.on "exit", (code) ->
 		if code isnt 0
-			console.log "exit with", code
+			console.log "Git log exit with", code
 
 
 program.parse process.argv
