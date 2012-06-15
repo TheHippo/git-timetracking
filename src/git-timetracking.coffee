@@ -22,7 +22,7 @@ parseInitTime = (val) ->
 		defaultPauseTime
 
 program
-	.version('0.2.1')
+	.version('0.2.2')
 	.option("-d, --directory [dir]", "directory to analyse", ".")
 	.option("-g, --group [regexp]", "group commit times by regexp", null)
 	.option("-u, --user <email>", "user email adress to filter")
@@ -30,8 +30,15 @@ program
 	.option("-p, --pause <pause>", "max pause time in minutes (default: #{defaultPauseTime})", parsePauseTime)
 	.option("-i, --init <init>", "init time in minutes (default: #{defaultInitTime})", parseInitTime)
 
+zeroPadding = (str) ->
+	str = str.toString()
+	if str.length is 1
+		"0" + str
+	else
+		str
+
 formatTime = (sum) ->
-	[Math.floor( sum / 60 / 60), Math.floor(Math.floor(sum / 60) % 60), sum % 60]
+	[zeroPadding(Math.floor( sum / 60 / 60)),zeroPadding(Math.floor(Math.floor(sum / 60) % 60)),zeroPadding(sum % 60)]
 
 formatTimeToString = (sum) ->
 	[h,m,s] = formatTime sum
