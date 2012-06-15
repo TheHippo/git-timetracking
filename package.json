@@ -1,7 +1,7 @@
 {
   "name": "gittimer",
   "preferGlobal": "false",
-  "version": "0.1.0",
+  "version": "0.2.2",
   "author": "Philipp Klose <me@thehippo.de>",
   "description": "evaluate used working time on a git repository",
   "bin": {
