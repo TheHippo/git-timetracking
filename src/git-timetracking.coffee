@@ -4,18 +4,28 @@ childProcess = require "child_process"
 spawn = childProcess.spawn
 cliTable = require "cli-table"
 
+outputPossibilities = ["ascii", "csv"]
+
+defaultOutputFormat = outputPossibilities[0]
 defaultPauseTime = 20
 defaultInitTime = 10
 
+
+parseOutputFormat = (val) ->
+	if val?
+		val = val.toLowerCase()
+		for option in outputPossibilities
+			if option is val
+				return val
+	outputPossibilities[0]
+
 parsePauseTime = (val) ->
-	console.log "parse"
 	if val?
 		parseInt val
 	else
 		defaultPauseTime
 
 parseInitTime = (val) ->
-	console.log "parse"
 	if val?
 		parseInt val
 	else
@@ -29,6 +39,7 @@ program
 	#.option("-t, --time [time]", "git log since compatible time")
 	.option("-p, --pause [pause]", "max pause time in minutes (default: #{defaultPauseTime})", parsePauseTime)
 	.option("-i, --init [init]", "init time in minutes (default: #{defaultInitTime})", parseInitTime)
+	.option("-o, --output [format]", "output formats (default: #{defaultOutputFormat}) (options: " + outputPossibilities.join(", ") + ")" , parseOutputFormat)
 
 zeroPadding = (str) ->
 	str = str.toString()
@@ -45,10 +56,40 @@ formatTimeToString = (sum) ->
 	return "#{h}:#{m}:#{s}"
 	
 
-outputSummary = (data) ->
+outputAscii = (data, total, grouped) ->
 	table = new cliTable
 		head: ['Issue', 'Time spent', 'Commit count']
 		colWidth: [100,100,100]
+	
+	if grouped?
+		for k,v of grouped
+			table.push [k, formatTimeToString(v.effort), v.count]
+	
+	table.push ["TOTAL:",formatTimeToString(total),data.length]
+	console.log table.toString()
+
+outputCsv = (data, total, grouped) ->
+	console.log "Issue;Time;Count"
+	if grouped?
+		for k,v of grouped
+			console.log "#{k};" + formatTimeToString(v.effort) + ";#{v.count}"
+	console.log "TOTAL;" + formatTimeToString(total) + ";#{data.length}"
+	
+
+calcTime = (data) ->
+	pause = program.pause * 60
+	init = program.init * 60
+	
+	for i in [0...data.length]
+		commit = data[i]
+		if not data[i+1]?
+			commit.effort = init
+		else
+			prev = data[i+1]
+			if prev.time + pause < commit.time
+				commit.effort = init
+			else
+				commit.effort = commit.time - prev.time
 	
 	if program.group?
 		try
@@ -87,30 +128,11 @@ outputSummary = (data) ->
 					grouped["other"].count++
 					grouped["other"].effort += commit.effort
 	
-	if grouped
-		for k,v of grouped
-			table.push [k, formatTimeToString(v.effort), v.count]
+	switch program.output
+		when "ascii" then outputAscii data, total, grouped
+		when "csv" then outputCsv data, total, grouped
 	
-	table.push ["TOTAL:",formatTimeToString(total),data.length]
-	console.log table.toString()
 	process.exit()
-
-calcTime = (data) ->
-	pause = program.pause * 60
-	init = program.init * 60
-	
-	for i in [0...data.length]
-		commit = data[i]
-		if not data[i+1]?
-			commit.effort = init
-		else
-			prev = data[i+1]
-			if prev.time + pause < commit.time
-				commit.effort = init
-			else
-				commit.effort = commit.time - prev.time
-		
-	outputSummary data
 	
 parseLog = (log, user) ->
 	lines = log.split "\n"
@@ -153,6 +175,8 @@ fs.realpath program.directory, (err, path) ->
 			program.pause = defaultPauseTime
 		if not program.init?
 			program.init = defaultInitTime
+		if not program.output?
+			program.output = defaultOutputFormat
 		if not program.user?
 			console.log "Need user email address"
 			process.exit()
