@@ -8,14 +8,12 @@ defaultPauseTime = 20
 defaultInitTime = 10
 
 parsePauseTime = (val) ->
-	console.log "parse"
 	if val?
 		parseInt val
 	else
 		defaultPauseTime
 
 parseInitTime = (val) ->
-	console.log "parse"
 	if val?
 		parseInt val
 	else
