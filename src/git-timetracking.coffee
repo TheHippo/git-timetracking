@@ -56,10 +56,33 @@ formatTimeToString = (sum) ->
 	return "#{h}:#{m}:#{s}"
 	
 
-outputSummary = (data) ->
+outputSummary = (data, total, grouped) ->
 	table = new cliTable
 		head: ['Issue', 'Time spent', 'Commit count']
 		colWidth: [100,100,100]
+	
+	if grouped?
+		for k,v of grouped
+			table.push [k, formatTimeToString(v.effort), v.count]
+	
+	table.push ["TOTAL:",formatTimeToString(total),data.length]
+	console.log table.toString()
+	
+
+calcTime = (data) ->
+	pause = program.pause * 60
+	init = program.init * 60
+	
+	for i in [0...data.length]
+		commit = data[i]
+		if not data[i+1]?
+			commit.effort = init
+		else
+			prev = data[i+1]
+			if prev.time + pause < commit.time
+				commit.effort = init
+			else
+				commit.effort = commit.time - prev.time
 	
 	if program.group?
 		try
@@ -98,30 +121,12 @@ outputSummary = (data) ->
 					grouped["other"].count++
 					grouped["other"].effort += commit.effort
 	
-	if grouped
-		for k,v of grouped
-			table.push [k, formatTimeToString(v.effort), v.count]
+	if program.group?
+		outputSummary data, total, grouped
+	else
+		outputSummary data, total
 	
-	table.push ["TOTAL:",formatTimeToString(total),data.length]
-	console.log table.toString()
 	process.exit()
-
-calcTime = (data) ->
-	pause = program.pause * 60
-	init = program.init * 60
-	
-	for i in [0...data.length]
-		commit = data[i]
-		if not data[i+1]?
-			commit.effort = init
-		else
-			prev = data[i+1]
-			if prev.time + pause < commit.time
-				commit.effort = init
-			else
-				commit.effort = commit.time - prev.time
-		
-	outputSummary data
 	
 parseLog = (log, user) ->
 	lines = log.split "\n"
