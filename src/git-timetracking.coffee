@@ -27,8 +27,8 @@ program
 	.option("-g, --group [regexp]", "group commit times by regexp", null)
 	.option("-u, --user <email>", "user email adress to filter")
 	#.option("-t, --time [time]", "git log since compatible time")
-	.option("-p, --pause <pause>", "max pause time in minutes (default: #{defaultPauseTime})", parsePauseTime)
-	.option("-i, --init <init>", "init time in minutes (default: #{defaultInitTime})", parseInitTime)
+	.option("-p, --pause [pause]", "max pause time in minutes (default: #{defaultPauseTime})", parsePauseTime)
+	.option("-i, --init [init]", "init time in minutes (default: #{defaultInitTime})", parseInitTime)
 
 zeroPadding = (str) ->
 	str = str.toString()
@@ -154,8 +154,8 @@ fs.realpath program.directory, (err, path) ->
 		if not program.init?
 			program.init = defaultInitTime
 		if not program.user?
-			program.prompt 'Email: ', (email) ->
-				start email, path
+			console.log "Need user email address"
+			process.exit()
 		else
 			start program.user, path
 
