@@ -17,5 +17,7 @@ on how much time you spend working on the repository
 		-d, --directory [dir]  directory to analyse
 		-g, --group [regexp]   group commit times by regexp
 		-u, --user <email>     user email adress to filter
-		-p, --pause <pause>    max pause time in minutes (default: 20)
-		-i, --init <init>      init time in minutes (default: 10)
+		-p, --pause [pause]    max pause time in minutes (default: 20)
+		-i, --init [init]      init time in minutes (default: 10)
+		-o, --output [format]  output formats (default: ascii) (options: ascii, csv)
+
