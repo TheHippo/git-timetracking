@@ -1,12 +1,9 @@
 {
   "name": "gittimer",
   "preferGlobal": "false",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "author": "Philipp Klose <me@thehippo.de>",
   "description": "evaluate used working time on a git repository",
-  "bin": {
-    "http-server": "./bin/http-server"
-  },
   "dependencies" : {
     "coffee-script"   :  "1.3.x",
     "commander" : "0.6.x",
