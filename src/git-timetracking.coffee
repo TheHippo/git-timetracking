@@ -4,7 +4,7 @@ childProcess = require "child_process"
 spawn = childProcess.spawn
 cliTable = require "cli-table"
 
-outputPossibilities = ["csv", "ascii"]
+outputPossibilities = ["ascii", "csv"]
 
 defaultOutputFormat = outputPossibilities[0]
 defaultPauseTime = 20
@@ -56,7 +56,7 @@ formatTimeToString = (sum) ->
 	return "#{h}:#{m}:#{s}"
 	
 
-outputSummary = (data, total, grouped) ->
+outputAscii = (data, total, grouped) ->
 	table = new cliTable
 		head: ['Issue', 'Time spent', 'Commit count']
 		colWidth: [100,100,100]
@@ -67,6 +67,13 @@ outputSummary = (data, total, grouped) ->
 	
 	table.push ["TOTAL:",formatTimeToString(total),data.length]
 	console.log table.toString()
+
+outputCsv = (data, total, grouped) ->
+	console.log "Issue;Time;Count"
+	if grouped?
+		for k,v of grouped
+			console.log "#{k};" + formatTimeToString(v.effort) + ";#{v.count}"
+	console.log "TOTAL;" + formatTimeToString(total) + ";#{data.length}"
 	
 
 calcTime = (data) ->
@@ -121,10 +128,9 @@ calcTime = (data) ->
 					grouped["other"].count++
 					grouped["other"].effort += commit.effort
 	
-	if program.group?
-		outputSummary data, total, grouped
-	else
-		outputSummary data, total
+	switch program.output
+		when "ascii" then outputAscii data, total, grouped
+		when "csv" then outputCsv data, total, grouped
 	
 	process.exit()
 	
