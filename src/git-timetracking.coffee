@@ -4,8 +4,20 @@ childProcess = require "child_process"
 spawn = childProcess.spawn
 cliTable = require "cli-table"
 
+outputPossibilities = ["csv", "ascii"]
+
+defaultOutputFormat = outputPossibilities[0]
 defaultPauseTime = 20
 defaultInitTime = 10
+
+
+parseOutputFormat = (val) ->
+	if val?
+		val = val.toLowerCase()
+		for option in outputPossibilities
+			if option is val
+				return val
+	outputPossibilities[0]
 
 parsePauseTime = (val) ->
 	if val?
@@ -27,6 +39,7 @@ program
 	#.option("-t, --time [time]", "git log since compatible time")
 	.option("-p, --pause [pause]", "max pause time in minutes (default: #{defaultPauseTime})", parsePauseTime)
 	.option("-i, --init [init]", "init time in minutes (default: #{defaultInitTime})", parseInitTime)
+	.option("-o, --output [format]", "output formats (default: #{defaultOutputFormat}) (options: " + outputPossibilities.join(", ") + ")" , parseOutputFormat)
 
 zeroPadding = (str) ->
 	str = str.toString()
@@ -151,6 +164,8 @@ fs.realpath program.directory, (err, path) ->
 			program.pause = defaultPauseTime
 		if not program.init?
 			program.init = defaultInitTime
+		if not program.output?
+			program.output = defaultOutputFormat
 		if not program.user?
 			console.log "Need user email address"
 			process.exit()
